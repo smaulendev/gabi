@@ -3,7 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
+
+import { Lot } from '../../lots/entities/lot.entity';
 
 @Entity('products')
 export class Product {
@@ -33,4 +36,7 @@ export class Product {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => Lot, (lot) => lot.product)
+  lots: Lot[];
 }
