@@ -9,7 +9,7 @@ import { UsersModule } from '../users/users.module';
   imports: [
     UsersModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWT_SECRET || 'gabi_secret',
       signOptions: {
         expiresIn: '1d',
       },
