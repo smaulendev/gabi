@@ -1,13 +1,11 @@
-import {
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { DispatchInventoryDto } from './dto/dispatch-inventory.dto';
 import { InventoryMovement } from './entities/inventory.entity';
 import { Lot } from '../lots/entities/lot.entity';
+import { AlertsService } from '../alerts/alerts.service';
 
 @Injectable()
 export class InventoryService {
@@ -17,6 +15,8 @@ export class InventoryService {
 
     @InjectRepository(Lot)
     private readonly lotsRepository: Repository<Lot>,
+
+    private readonly alertsService: AlertsService,
   ) {}
 
   async dispatch(dispatchDto: DispatchInventoryDto) {
@@ -60,6 +60,13 @@ export class InventoryService {
 
       await this.lotsRepository.save(lot);
 
+      if (lot.currentQuantity === 0) {
+        await this.alertsService.create({
+          type: 'LOTE_AGOTADO',
+          severity: 'MEDIUM',
+          message: `El lote ${lot.batchNumber} quedó sin stock después del despacho FEFO`,
+        });
+      }
       const movement = this.movementsRepository.create({
         productId: dispatchDto.productId,
         lotId: lot.id,
