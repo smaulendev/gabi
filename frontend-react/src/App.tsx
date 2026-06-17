@@ -5,6 +5,7 @@ import LotsPage from './pages/LotsPage';
 import AlertsPage from './pages/AlertsPage';
 import SensorsPage from './pages/SensorsPage';
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -15,6 +16,7 @@ function App() {
         <Route path="/lots" element={<LotsPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/sensors" element={<SensorsPage />} />
+        <Route path="/alerts" element={<AlertsPage />} />
       </Routes>
     </BrowserRouter>
   );
