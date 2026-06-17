@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import Layout from '../components/Layout';
-import { api } from '../api/api';
-import StatCard from '../components/StatCard';
-import EnvironmentChart from '../components/EnvironmentChart';
+import { useEffect, useState } from "react";
+import Layout from "../components/Layout";
+import { api } from "../api/api";
+import StatCard from "../components/StatCard";
+import EnvironmentChart from "../components/EnvironmentChart";
 
 import {
   Package,
@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   Thermometer,
   Brain,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function DashboardPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -27,11 +27,11 @@ export default function DashboardPage() {
     try {
       const [productsRes, lotsRes, alertsRes, sensorsRes, aiRes] =
         await Promise.all([
-          api.get('/products'),
-          api.get('/lots'),
-          api.get('/alerts/active'),
-          api.get('/sensor-readings/latest'),
-          api.get('/ai/risk-summary'),
+          api.get("/products"),
+          api.get("/lots"),
+          api.get("/alerts/active"),
+          api.get("/sensor-readings/latest"),
+          api.get("/ai/risk-summary"),
         ]);
 
       setProducts(productsRes.data);
@@ -40,7 +40,7 @@ export default function DashboardPage() {
       setSensors(sensorsRes.data);
       setAiRisk(aiRes.data.aiResponse);
     } catch (error) {
-      console.error('Error cargando dashboard:', error);
+      console.error("Error cargando dashboard:", error);
     }
   };
 
@@ -49,20 +49,47 @@ export default function DashboardPage() {
   return (
     <Layout>
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">
-          Dashboard GABI
-        </h1>
+        <h1 className="text-3xl font-bold text-slate-900">Dashboard GABI</h1>
 
         <p className="mt-2 text-slate-500">
           Centro de monitoreo logístico inteligente.
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
-          <StatCard title="Productos" value={products.length} icon={<Package size={28} />} />
-          <StatCard title="Lotes" value={lots.length} icon={<Boxes size={28} />} />
-          <StatCard title="Alertas" value={alerts.length} icon={<AlertTriangle size={28} />} />
-          <StatCard title="Temperatura" value={latestSensor ? `${latestSensor.temperature}°C` : '-'} icon={<Thermometer size={28} />} />
-          <StatCard title="Riesgo IA" value={aiRisk?.risk || '-'} icon={<Brain size={28} />} />
+          <StatCard
+            title="Productos"
+            value={products.length}
+            icon={<Package size={28} />}
+          />
+          <StatCard
+            title="Lotes"
+            value={lots.length}
+            icon={<Boxes size={28} />}
+          />
+          <StatCard
+            title="Alertas"
+            value={alerts.length}
+            icon={<AlertTriangle size={28} />}
+          />
+          <StatCard
+            title="Temperatura"
+            value={latestSensor ? `${latestSensor.temperature}°C` : "-"}
+            icon={<Thermometer size={28} />}
+          />
+          <StatCard
+            title="Riesgo IA"
+            value={aiRisk?.risk || "-"}
+            icon={<Brain size={28} />}
+            variant={
+              aiRisk?.risk === "ALTO"
+                ? "danger"
+                : aiRisk?.risk === "MEDIO"
+                  ? "warning"
+                  : aiRisk?.risk === "BAJO"
+                    ? "success"
+                    : "default"
+            }
+          />{" "}
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -87,16 +114,12 @@ export default function DashboardPage() {
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm text-slate-500">
-                    {alert.message}
-                  </p>
+                  <p className="mt-2 text-sm text-slate-500">{alert.message}</p>
                 </div>
               ))}
 
               {alerts.length === 0 && (
-                <p className="text-slate-500">
-                  No existen alertas activas.
-                </p>
+                <p className="text-slate-500">No existen alertas activas.</p>
               )}
             </div>
           </section>
@@ -114,7 +137,7 @@ export default function DashboardPage() {
                 >
                   <div>
                     <p className="font-semibold text-slate-800">
-                      {sensor.location || 'Bodega'}
+                      {sensor.location || "Bodega"}
                     </p>
 
                     <p className="text-sm text-slate-500">
@@ -124,9 +147,9 @@ export default function DashboardPage() {
 
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      sensor.status === 'CRITICAL'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-green-100 text-green-700'
+                      sensor.status === "CRITICAL"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-green-100 text-green-700"
                     }`}
                   >
                     {sensor.status}

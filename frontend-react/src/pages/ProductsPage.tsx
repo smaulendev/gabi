@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
-import Layout from '../components/Layout';
-import { api } from '../api/api';
+import { useEffect, useState } from "react";
+import Layout from "../components/Layout";
+import { api } from "../api/api";
+import { toast } from "react-toastify";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
 
   const [form, setForm] = useState({
-    sku: '',
-    name: '',
-    description: '',
-    category: '',
+    sku: "",
+    name: "",
+    description: "",
+    category: "",
     requiresColdChain: false,
     minTemperature: 2,
     maxTemperature: 8,
@@ -20,34 +21,40 @@ export default function ProductsPage() {
   }, []);
 
   const loadProducts = async () => {
-    const response = await api.get('/products');
+    const response = await api.get("/products");
     setProducts(response.data);
   };
 
   const createProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await api.post('/products', form);
+    try {
+      await api.post("/products", form);
 
-    setForm({
-      sku: '',
-      name: '',
-      description: '',
-      category: '',
-      requiresColdChain: false,
-      minTemperature: 2,
-      maxTemperature: 8,
-    });
+      toast.success("Producto creado correctamente");
 
-    loadProducts();
+      setForm({
+        sku: "",
+        name: "",
+        description: "",
+        category: "",
+        requiresColdChain: false,
+        minTemperature: 2,
+        maxTemperature: 8,
+      });
+
+      loadProducts();
+    } catch (error) {
+      toast.error(
+        "Error al crear producto. Verifica el SKU o los datos ingresados.",
+      );
+    }
   };
 
   return (
     <Layout>
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">
-          Productos
-        </h1>
+        <h1 className="text-3xl font-bold text-slate-900">Productos</h1>
 
         <p className="mt-2 text-slate-500">
           Gestión de bio-insumos registrados en GABI.
@@ -55,36 +62,28 @@ export default function ProductsPage() {
 
         <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
           <section className="rounded-xl bg-white p-6 shadow-md xl:col-span-1">
-            <h2 className="text-xl font-bold text-slate-900">
-              Crear producto
-            </h2>
+            <h2 className="text-xl font-bold text-slate-900">Crear producto</h2>
 
             <form onSubmit={createProduct} className="mt-6 space-y-4">
               <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-2"
                 placeholder="SKU"
                 value={form.sku}
-                onChange={(e) =>
-                  setForm({ ...form, sku: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, sku: e.target.value })}
               />
 
               <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-2"
                 placeholder="Nombre"
                 value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
 
               <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-2"
                 placeholder="Categoría"
                 value={form.category}
-                onChange={(e) =>
-                  setForm({ ...form, category: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
               />
 
               <textarea
@@ -167,29 +166,23 @@ export default function ProductsPage() {
                 <tbody>
                   {products.map((product) => (
                     <tr key={product.id} className="border-b">
-                      <td className="px-4 py-3 font-medium">
-                        {product.sku}
-                      </td>
-                      <td className="px-4 py-3">
-                        {product.name}
-                      </td>
-                      <td className="px-4 py-3">
-                        {product.category || '-'}
-                      </td>
+                      <td className="px-4 py-3 font-medium">{product.sku}</td>
+                      <td className="px-4 py-3">{product.name}</td>
+                      <td className="px-4 py-3">{product.category || "-"}</td>
                       <td className="px-4 py-3">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             product.requiresColdChain
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-slate-100 text-slate-600'
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-slate-100 text-slate-600"
                           }`}
                         >
-                          {product.requiresColdChain ? 'Sí' : 'No'}
+                          {product.requiresColdChain ? "Sí" : "No"}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {product.minTemperature ?? '-'}°C /{' '}
-                        {product.maxTemperature ?? '-'}°C
+                        {product.minTemperature ?? "-"}°C /{" "}
+                        {product.maxTemperature ?? "-"}°C
                       </td>
                     </tr>
                   ))}

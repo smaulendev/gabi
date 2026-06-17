@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api/api';
 import EnvironmentChart from '../components/EnvironmentChart';
+import { toast } from 'react-toastify';
 
 export default function SensorsPage() {
   const [sensors, setSensors] = useState<any[]>([]);
@@ -21,17 +22,23 @@ export default function SensorsPage() {
     setSensors(res.data);
   };
 
-  const createReading = async (e: React.FormEvent) => {
-    e.preventDefault();
+const createReading = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  try {
     await api.post('/sensor-readings', {
       temperature: Number(form.temperature),
       humidity: Number(form.humidity),
       location: form.location,
     });
 
+    toast.success('Lectura ambiental registrada correctamente');
+
     loadSensors();
-  };
+  } catch {
+    toast.error('Error al registrar lectura ambiental');
+  }
+};
 
   return (
     <Layout>

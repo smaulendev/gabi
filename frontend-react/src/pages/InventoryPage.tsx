@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api/api';
+import { toast } from 'react-toastify';
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -28,13 +29,16 @@ export default function InventoryPage() {
     setMovements(movementsRes.data);
   };
 
-  const dispatchInventory = async (e: React.FormEvent) => {
-    e.preventDefault();
+const dispatchInventory = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  try {
     await api.post('/inventory/dispatch', {
       productId: Number(form.productId),
       quantity: Number(form.quantity),
     });
+
+    toast.success('Despacho FEFO realizado correctamente');
 
     setForm({
       productId: '',
@@ -42,7 +46,10 @@ export default function InventoryPage() {
     });
 
     loadData();
-  };
+  } catch {
+    toast.error('Stock insuficiente o datos inválidos para el despacho');
+  }
+};
 
   const getTotalStockByProduct = (productId: number) => {
     return lots

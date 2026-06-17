@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api/api';
+import { toast } from 'react-toastify';
 
 export default function LotsPage() {
   const [lots, setLots] = useState<any[]>([]);
@@ -28,9 +29,10 @@ export default function LotsPage() {
     setProducts(productsRes.data);
   };
 
-  const createLot = async (e: React.FormEvent) => {
-    e.preventDefault();
+const createLot = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  try {
     await api.post('/lots', {
       batchNumber: form.batchNumber,
       expirationDate: form.expirationDate,
@@ -38,6 +40,8 @@ export default function LotsPage() {
       currentQuantity: Number(form.currentQuantity),
       productId: Number(form.productId),
     });
+
+    toast.success('Lote creado correctamente');
 
     setForm({
       batchNumber: '',
@@ -48,7 +52,10 @@ export default function LotsPage() {
     });
 
     loadData();
-  };
+  } catch {
+    toast.error('Error al crear lote. Verifica los datos ingresados.');
+  }
+};
 
   return (
     <Layout>

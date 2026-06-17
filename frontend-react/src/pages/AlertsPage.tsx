@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api/api';
+import { toast } from 'react-toastify';
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -14,10 +15,17 @@ export default function AlertsPage() {
     setAlerts(res.data);
   };
 
-  const resolveAlert = async (id: number) => {
+const resolveAlert = async (id: number) => {
+  try {
     await api.patch(`/alerts/${id}/resolve`);
+
+    toast.success('Alerta resuelta correctamente');
+
     loadAlerts();
-  };
+  } catch {
+    toast.error('No fue posible resolver la alerta');
+  }
+};
 
   return (
     <Layout>
