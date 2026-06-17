@@ -8,5 +8,6 @@ import { AiController } from './ai.controller';
   imports: [HttpModule],
   controllers: [AiController],
   providers: [AiService],
+  exports: [AiService],
 })
 export class AiModule {}

@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateSensorReadingDto } from './dto/create-sensor-reading.dto';
 import { SensorReading } from './entities/sensor-reading.entity';
 import { AlertsService } from '../alerts/alerts.service';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class SensorReadingsService {
@@ -13,6 +14,8 @@ export class SensorReadingsService {
     private readonly sensorReadingsRepository: Repository<SensorReading>,
 
     private readonly alertsService: AlertsService,
+
+    private readonly aiService: AiService,
   ) {}
 
   async create(createSensorReadingDto: CreateSensorReadingDto) {
@@ -32,6 +35,19 @@ export class SensorReadingsService {
     });
 
     const savedReading = await this.sensorReadingsRepository.save(reading);
+    const aiRisk = await this.aiService.analyzeSensorRisk(
+      15,
+      createSensorReadingDto.temperature,
+      createSensorReadingDto.humidity,
+    );
+
+    if (aiRisk.risk === 'ALTO') {
+      await this.alertsService.create({
+        type: 'RIESGO_IA',
+        severity: 'HIGH',
+        message: `La IA detectó riesgo ALTO con score ${aiRisk.score}. Temperatura: ${createSensorReadingDto.temperature}°C, Humedad: ${createSensorReadingDto.humidity}%`,
+      });
+    }
 
     if (status === 'CRITICAL') {
       await this.alertsService.create({
