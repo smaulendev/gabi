@@ -29,8 +29,25 @@ export default function ScannerPage() {
     }
   };
 
+  const stopScanner = async () => {
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
+        scannerRef.current = null;
+      }
+
+      setIsScanning(false);
+    } catch (error) {
+      console.error("Error al detener escáner:", error);
+      setIsScanning(false);
+    }
+  };
+
   const startScanner = async () => {
     try {
+      if (scannerRef.current || isScanning) return;
+
       const scanner = new Html5Qrcode("reader");
       scannerRef.current = scanner;
 
@@ -42,6 +59,7 @@ export default function ScannerPage() {
             width: 250,
             height: 250,
           },
+          aspectRatio: 1.777,
         },
         async (decodedText) => {
           setBarcode(decodedText);
@@ -53,22 +71,12 @@ export default function ScannerPage() {
 
       setIsScanning(true);
     } catch (error) {
-      console.error(error);
-      toast.error("No fue posible acceder a la cámara");
-    }
-  };
-
-  const stopScanner = async () => {
-    try {
-      if (scannerRef.current) {
-        await scannerRef.current.stop();
-        await scannerRef.current.clear();
-        scannerRef.current = null;
-      }
-
+      console.error("Error al iniciar escáner:", error);
+      scannerRef.current = null;
       setIsScanning(false);
-    } catch (error) {
-      console.error(error);
+      toast.error(
+        "No fue posible acceder a la cámara. En celular usa HTTPS o un despliegue seguro."
+      );
     }
   };
 
@@ -93,101 +101,114 @@ export default function ScannerPage() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold text-slate-900">
-        Escáner QR / Código de barras
-      </h1>
+      <div className="mx-auto max-w-6xl">
+        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+          Escáner QR / Código de barras
+        </h1>
 
-      <p className="mt-2 text-slate-500">
-        Identificación de bio-insumos mediante cámara o ingreso manual de código.
-      </p>
+        <p className="mt-2 text-sm text-slate-500 sm:text-base">
+          Identificación de bio-insumos mediante cámara o ingreso manual de
+          código.
+        </p>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <section className="rounded-xl bg-white p-6 shadow-md">
-          <h2 className="text-xl font-bold text-slate-900">
-            Lectura por cámara
-          </h2>
+        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700">
+          Para usar la cámara desde un celular, abre la aplicación desde una URL
+          segura HTTPS. En PC sin cámara puedes usar la búsqueda manual.
+        </div>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Usa la cámara del dispositivo para escanear QR o código de barras.
-          </p>
+        <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <section className="rounded-xl bg-white p-4 shadow-md sm:p-6">
+            <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+              Lectura por cámara
+            </h2>
 
-          <div
-            id="reader"
-            className="mt-6 overflow-hidden rounded-xl border border-slate-200"
-          />
+            <p className="mt-2 text-sm text-slate-500">
+              Usa la cámara del dispositivo móvil para escanear QR o código de
+              barras.
+            </p>
 
-          <div className="mt-6 flex gap-3">
-            {!isScanning ? (
-              <button
-                onClick={startScanner}
-                className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"
-              >
-                Iniciar escáner
-              </button>
-            ) : (
-              <button
-                onClick={stopScanner}
-                className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700"
-              >
-                Detener escáner
-              </button>
-            )}
-          </div>
-        </section>
-
-        <section className="rounded-xl bg-white p-6 shadow-md">
-          <h2 className="text-xl font-bold text-slate-900">
-            Búsqueda manual
-          </h2>
-
-          <form onSubmit={handleManualSearch} className="mt-6 space-y-4">
-            <input
-              className="w-full rounded-lg border border-slate-300 px-4 py-2"
-              placeholder="Ej: 7801234567890"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
+            <div
+              id="reader"
+              className="mt-6 min-h-[280px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 sm:min-h-[340px]"
             />
 
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800"
-            >
-              Buscar producto
-            </button>
-          </form>
-
-          {product && (
-            <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-lg font-bold text-slate-900">
-                Producto encontrado
-              </h3>
-
-              <div className="mt-4 space-y-2 text-sm text-slate-700">
-                <p>
-                  <strong>SKU:</strong> {product.sku}
-                </p>
-                <p>
-                  <strong>Código:</strong> {product.barcode || "-"}
-                </p>
-                <p>
-                  <strong>Nombre:</strong> {product.name}
-                </p>
-                <p>
-                  <strong>Categoría:</strong> {product.category || "-"}
-                </p>
-                <p>
-                  <strong>Cadena de frío:</strong>{" "}
-                  {product.requiresColdChain ? "Sí" : "No"}
-                </p>
-                <p>
-                  <strong>Rango temperatura:</strong>{" "}
-                  {product.minTemperature ?? "-"}°C /{" "}
-                  {product.maxTemperature ?? "-"}°C
-                </p>
-              </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              {!isScanning ? (
+                <button
+                  onClick={startScanner}
+                  className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 sm:w-auto"
+                >
+                  Iniciar escáner
+                </button>
+              ) : (
+                <button
+                  onClick={stopScanner}
+                  className="w-full rounded-lg bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-700 sm:w-auto"
+                >
+                  Detener escáner
+                </button>
+              )}
             </div>
-          )}
-        </section>
+          </section>
+
+          <section className="rounded-xl bg-white p-4 shadow-md sm:p-6">
+            <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+              Búsqueda manual
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Útil para pruebas en PC o cuando no hay cámara disponible.
+            </p>
+
+            <form onSubmit={handleManualSearch} className="mt-6 space-y-4">
+              <input
+                className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                placeholder="Ej: 7801234567890"
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+              />
+
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800"
+              >
+                Buscar producto
+              </button>
+            </form>
+
+            {product && (
+              <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <h3 className="text-lg font-bold text-slate-900">
+                  Producto encontrado
+                </h3>
+
+                <div className="mt-4 space-y-2 text-sm text-slate-700">
+                  <p>
+                    <strong>SKU:</strong> {product.sku}
+                  </p>
+                  <p>
+                    <strong>Código:</strong> {product.barcode || "-"}
+                  </p>
+                  <p>
+                    <strong>Nombre:</strong> {product.name}
+                  </p>
+                  <p>
+                    <strong>Categoría:</strong> {product.category || "-"}
+                  </p>
+                  <p>
+                    <strong>Cadena de frío:</strong>{" "}
+                    {product.requiresColdChain ? "Sí" : "No"}
+                  </p>
+                  <p>
+                    <strong>Rango temperatura:</strong>{" "}
+                    {product.minTemperature ?? "-"}°C /{" "}
+                    {product.maxTemperature ?? "-"}°C
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </Layout>
   );

@@ -6,19 +6,12 @@ export default function Layout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="min-h-screen bg-slate-100 lg:flex">
       <Sidebar />
 
-      <div
-        style={{
-          flex: 1,
-          padding: '20px',
-          background: '#f8fafc',
-          minHeight: '100vh',
-        }}
-      >
+      <main className="w-full flex-1 p-4 lg:p-8">
         {children}
-      </div>
+      </main>
     </div>
   );
 }
