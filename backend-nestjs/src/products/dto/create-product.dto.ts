@@ -1,5 +1,6 @@
 export class CreateProductDto {
   sku: string;
+  barcode?: string;
   name: string;
   description?: string;
   category?: string;

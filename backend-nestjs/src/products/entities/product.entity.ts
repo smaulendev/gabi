@@ -16,6 +16,9 @@ export class Product {
   @Column({ unique: true })
   sku: string;
 
+  @Column({ unique: true, nullable: true })
+  barcode: string;
+
   @Column()
   name: string;
 

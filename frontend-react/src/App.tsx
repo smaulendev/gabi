@@ -7,6 +7,8 @@ import AlertsPage from "./pages/AlertsPage";
 import SensorsPage from "./pages/SensorsPage";
 import InventoryPage from "./pages/InventoryPage";
 import LoginPage from "./pages/LoginPage";
+import InventoryMovementsPage from "./pages/InventoryMovementsPage";
+import ScannerPage from "./pages/ScannerPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -32,6 +34,15 @@ function App() {
           element={
             <ProtectedRoute>
               <ProductsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/scanner"
+          element={
+            <ProtectedRoute>
+              <ScannerPage />
             </ProtectedRoute>
           }
         />
@@ -68,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute>
               <InventoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/movements"
+          element={
+            <ProtectedRoute>
+              <InventoryMovementsPage />
             </ProtectedRoute>
           }
         />

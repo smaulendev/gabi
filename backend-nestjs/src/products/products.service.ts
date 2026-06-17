@@ -38,4 +38,10 @@ export class ProductsService {
       where: { id },
     });
   }
+
+  async findByBarcode(barcode: string) {
+  return this.productsRepository.findOne({
+    where: { barcode },
+  });
+}
 }

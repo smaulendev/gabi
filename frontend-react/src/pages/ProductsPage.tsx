@@ -11,6 +11,7 @@ export default function ProductsPage() {
     name: "",
     description: "",
     category: "",
+    barcode: "",
     requiresColdChain: false,
     minTemperature: 2,
     maxTemperature: 8,
@@ -38,15 +39,16 @@ export default function ProductsPage() {
         name: "",
         description: "",
         category: "",
+        barcode: "",
         requiresColdChain: false,
         minTemperature: 2,
         maxTemperature: 8,
       });
 
       loadProducts();
-    } catch (error) {
+    } catch {
       toast.error(
-        "Error al crear producto. Verifica el SKU o los datos ingresados.",
+        "Error al crear producto. Verifica el SKU, código de barras o los datos ingresados."
       );
     }
   };
@@ -70,6 +72,7 @@ export default function ProductsPage() {
                 placeholder="SKU"
                 value={form.sku}
                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                required
               />
 
               <input
@@ -77,13 +80,26 @@ export default function ProductsPage() {
                 placeholder="Nombre"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
               />
 
               <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-2"
                 placeholder="Categoría"
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value })
+                }
+              />
+
+              <input
+                className="w-full rounded-lg border border-slate-300 px-4 py-2"
+                placeholder="Código de barras"
+                value={form.barcode}
+                onChange={(e) =>
+                  setForm({ ...form, barcode: e.target.value })
+                }
+                required
               />
 
               <textarea
@@ -156,6 +172,7 @@ export default function ProductsPage() {
                 <thead>
                   <tr className="border-b bg-slate-50 text-slate-600">
                     <th className="px-4 py-3">SKU</th>
+                    <th className="px-4 py-3">Código</th>
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Categoría</th>
                     <th className="px-4 py-3">Cadena frío</th>
@@ -167,8 +184,17 @@ export default function ProductsPage() {
                   {products.map((product) => (
                     <tr key={product.id} className="border-b">
                       <td className="px-4 py-3 font-medium">{product.sku}</td>
+
+                      <td className="px-4 py-3">
+                        {product.barcode || "-"}
+                      </td>
+
                       <td className="px-4 py-3">{product.name}</td>
-                      <td className="px-4 py-3">{product.category || "-"}</td>
+
+                      <td className="px-4 py-3">
+                        {product.category || "-"}
+                      </td>
+
                       <td className="px-4 py-3">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -180,6 +206,7 @@ export default function ProductsPage() {
                           {product.requiresColdChain ? "Sí" : "No"}
                         </span>
                       </td>
+
                       <td className="px-4 py-3">
                         {product.minTemperature ?? "-"}°C /{" "}
                         {product.maxTemperature ?? "-"}°C
@@ -190,7 +217,7 @@ export default function ProductsPage() {
                   {products.length === 0 && (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-4 py-6 text-center text-slate-500"
                       >
                         No existen productos registrados.
