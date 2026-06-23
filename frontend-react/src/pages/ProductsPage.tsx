@@ -11,6 +11,7 @@ export default function ProductsPage() {
     name: "",
     description: "",
     category: "",
+    chemicalFamily: "",
     barcode: "",
     minStock: 10,
     requiresColdChain: false,
@@ -40,6 +41,7 @@ export default function ProductsPage() {
         name: "",
         description: "",
         category: "",
+        chemicalFamily: "",
         barcode: "",
         minStock: 10,
         requiresColdChain: false,
@@ -93,6 +95,25 @@ export default function ProductsPage() {
                   setForm({ ...form, category: e.target.value })
                 }
               />
+
+              <select
+                className="w-full rounded-lg border border-slate-300 px-4 py-2"
+                value={form.chemicalFamily}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    chemicalFamily: e.target.value,
+                  })
+                }
+              >
+                <option value="">Familia química</option>
+                <option value="ACIDO">Ácido</option>
+                <option value="BASE">Base</option>
+                <option value="OXIDANTE">Oxidante</option>
+                <option value="INFLAMABLE">Inflamable</option>
+                <option value="BIOLOGICO">Biológico</option>
+                <option value="REACTIVO_GENERAL">Reactivo general</option>
+              </select>
 
               <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-2"
@@ -190,6 +211,7 @@ export default function ProductsPage() {
                     <th className="px-4 py-3">Código</th>
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Categoría</th>
+                    <th className="px-4 py-3">Familia química</th>
                     <th className="px-4 py-3">Stock mín.</th>
                     <th className="px-4 py-3">Cadena frío</th>
                     <th className="px-4 py-3">Rango temp.</th>
@@ -207,6 +229,10 @@ export default function ProductsPage() {
 
                       <td className="px-4 py-3">
                         {product.category || "-"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {product.chemicalFamily || "-"}
                       </td>
 
                       <td className="px-4 py-3">
@@ -235,7 +261,7 @@ export default function ProductsPage() {
                   {products.length === 0 && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="px-4 py-6 text-center text-slate-500"
                       >
                         No existen productos registrados.

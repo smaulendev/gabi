@@ -28,6 +28,9 @@ export class Product {
   @Column({ nullable: true })
   category: string;
 
+  @Column({ nullable: true })
+  chemicalFamily: string;
+
   @Column({ default: 10 })
   minStock: number;
 

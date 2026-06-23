@@ -8,4 +8,5 @@ export class CreateProductDto {
   requiresColdChain?: boolean;
   minTemperature?: number;
   maxTemperature?: number;
+  chemicalFamily?: string;
 }
