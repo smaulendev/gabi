@@ -12,6 +12,7 @@ export default function ProductsPage() {
     description: "",
     category: "",
     barcode: "",
+    minStock: 10,
     requiresColdChain: false,
     minTemperature: 2,
     maxTemperature: 8,
@@ -40,6 +41,7 @@ export default function ProductsPage() {
         description: "",
         category: "",
         barcode: "",
+        minStock: 10,
         requiresColdChain: false,
         minTemperature: 2,
         maxTemperature: 8,
@@ -94,12 +96,25 @@ export default function ProductsPage() {
 
               <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-2"
-                placeholder="Código de barras"
+                placeholder="Código de barras / QR"
                 value={form.barcode}
                 onChange={(e) =>
                   setForm({ ...form, barcode: e.target.value })
                 }
                 required
+              />
+
+              <input
+                type="number"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2"
+                placeholder="Stock mínimo"
+                value={form.minStock}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    minStock: Number(e.target.value),
+                  })
+                }
               />
 
               <textarea
@@ -175,6 +190,7 @@ export default function ProductsPage() {
                     <th className="px-4 py-3">Código</th>
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Categoría</th>
+                    <th className="px-4 py-3">Stock mín.</th>
                     <th className="px-4 py-3">Cadena frío</th>
                     <th className="px-4 py-3">Rango temp.</th>
                   </tr>
@@ -185,14 +201,16 @@ export default function ProductsPage() {
                     <tr key={product.id} className="border-b">
                       <td className="px-4 py-3 font-medium">{product.sku}</td>
 
-                      <td className="px-4 py-3">
-                        {product.barcode || "-"}
-                      </td>
+                      <td className="px-4 py-3">{product.barcode || "-"}</td>
 
                       <td className="px-4 py-3">{product.name}</td>
 
                       <td className="px-4 py-3">
                         {product.category || "-"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {product.minStock ?? 10}
                       </td>
 
                       <td className="px-4 py-3">
@@ -217,7 +235,7 @@ export default function ProductsPage() {
                   {products.length === 0 && (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-4 py-6 text-center text-slate-500"
                       >
                         No existen productos registrados.

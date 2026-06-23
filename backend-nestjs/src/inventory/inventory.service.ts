@@ -6,6 +6,7 @@ import { DispatchInventoryDto } from './dto/dispatch-inventory.dto';
 import { InventoryMovement } from './entities/inventory.entity';
 import { Lot } from '../lots/entities/lot.entity';
 import { AlertsService } from '../alerts/alerts.service';
+import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class InventoryService {
@@ -15,6 +16,9 @@ export class InventoryService {
 
     @InjectRepository(Lot)
     private readonly lotsRepository: Repository<Lot>,
+
+    @InjectRepository(Product)
+    private readonly productsRepository: Repository<Product>,
 
     private readonly alertsService: AlertsService,
   ) {}
@@ -31,9 +35,6 @@ export class InventoryService {
       },
     });
 
-    let remainingQuantity = dispatchDto.quantity;
-    const movements: InventoryMovement[] = [];
-
     const totalAvailable = lots.reduce(
       (sum, lot) => sum + lot.currentQuantity,
       0,
@@ -45,9 +46,11 @@ export class InventoryService {
       );
     }
 
+    let remainingQuantity = dispatchDto.quantity;
+    const movements: InventoryMovement[] = [];
+
     for (const lot of lots) {
       if (remainingQuantity <= 0) break;
-
       if (lot.currentQuantity <= 0) continue;
 
       const quantityToDispatch = Math.min(
@@ -60,13 +63,6 @@ export class InventoryService {
 
       await this.lotsRepository.save(lot);
 
-      if (lot.currentQuantity === 0) {
-        await this.alertsService.create({
-          type: 'LOTE_AGOTADO',
-          severity: 'MEDIUM',
-          message: `El lote ${lot.batchNumber} quedó sin stock después del despacho FEFO`,
-        });
-      }
       const movement = this.movementsRepository.create({
         productId: dispatchDto.productId,
         lotId: lot.id,
@@ -76,11 +72,57 @@ export class InventoryService {
       });
 
       movements.push(await this.movementsRepository.save(movement));
+
+      if (lot.currentQuantity === 0) {
+        await this.alertsService.create({
+          type: 'LOTE_AGOTADO',
+          severity: 'MEDIUM',
+          message: `El lote ${lot.batchNumber} quedó sin stock después del despacho FEFO`,
+        });
+      }
+    }
+
+    const product = await this.productsRepository.findOne({
+      where: {
+        id: dispatchDto.productId,
+      },
+    });
+
+    const updatedLots = await this.lotsRepository.find({
+      where: {
+        product: {
+          id: dispatchDto.productId,
+        },
+      },
+    });
+
+    const totalStock = updatedLots.reduce(
+      (sum, lot) => sum + lot.currentQuantity,
+      0,
+    );
+
+    if (product && totalStock <= product.minStock) {
+      const activeAlerts = await this.alertsService.findActive();
+
+      const alreadyExists = activeAlerts.some(
+        (alert) =>
+          alert.type === 'QUIEBRE_STOCK' &&
+          alert.message.includes(product.name),
+      );
+
+      if (!alreadyExists) {
+        await this.alertsService.create({
+          type: 'QUIEBRE_STOCK',
+          severity: 'HIGH',
+          message: `El producto ${product.name} presenta riesgo de quiebre de stock. Stock actual: ${totalStock}, mínimo definido: ${product.minStock}`,
+        });
+      }
     }
 
     return {
       message: 'Despacho realizado correctamente aplicando FEFO',
       requestedQuantity: dispatchDto.quantity,
+      remainingStock: totalStock,
       movements,
     };
   }

@@ -28,6 +28,9 @@ export class Product {
   @Column({ nullable: true })
   category: string;
 
+  @Column({ default: 10 })
+  minStock: number;
+
   @Column({ default: false })
   requiresColdChain: boolean;
 

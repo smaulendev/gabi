@@ -6,10 +6,11 @@ import { InventoryController } from './inventory.controller';
 import { InventoryMovement } from './entities/inventory.entity';
 import { Lot } from '../lots/entities/lot.entity';
 import { AlertsModule } from '../alerts/alerts.module';
+import { Product } from '../products/entities/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([InventoryMovement, Lot]),
+    TypeOrmModule.forFeature([InventoryMovement, Lot, Product]),
     AlertsModule,
   ],
   controllers: [InventoryController],

@@ -4,6 +4,7 @@ export class CreateProductDto {
   name: string;
   description?: string;
   category?: string;
+  minStock?: number;
   requiresColdChain?: boolean;
   minTemperature?: number;
   maxTemperature?: number;
