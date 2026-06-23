@@ -39,7 +39,9 @@ export class LotsService {
     if (incompatibleFamilies.length === 0) return;
 
     const activeLots = await this.lotsRepository.find({
-      where: {},
+      relations: {
+        product: true,
+      },
     });
 
     const incompatibleLot = activeLots.find((lot) => {
@@ -71,6 +73,7 @@ export class LotsService {
   }
 
   async create(createLotDto: CreateLotDto) {
+
     const product = await this.productsRepository.findOne({
       where: { id: createLotDto.productId },
     });
@@ -96,6 +99,7 @@ export class LotsService {
     });
 
     const savedLot = await this.lotsRepository.save(lot);
+
 
     await this.checkChemicalCompatibility(product);
 
