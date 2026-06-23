@@ -23,27 +23,32 @@ export default function DashboardPage() {
     loadDashboard();
   }, []);
 
-  const loadDashboard = async () => {
-    try {
-      const [productsRes, lotsRes, alertsRes, sensorsRes, aiRes] =
-        await Promise.all([
-          api.get("/products"),
-          api.get("/lots"),
-          api.get("/alerts/active"),
-          api.get("/sensor-readings/latest"),
-          api.get("/ai/risk-summary"),
-        ]);
+const loadDashboard = async () => {
+  try {
+    const [productsRes, lotsRes, alertsRes, sensorsRes] =
+      await Promise.all([
+        api.get('/products'),
+        api.get('/lots'),
+        api.get('/alerts/active'),
+        api.get('/sensor-readings/latest'),
+      ]);
 
-      setProducts(productsRes.data);
-      setLots(lotsRes.data);
-      setAlerts(alertsRes.data);
-      setSensors(sensorsRes.data);
+    setProducts(productsRes.data);
+    setLots(lotsRes.data);
+    setAlerts(alertsRes.data);
+    setSensors(sensorsRes.data);
+
+    try {
+      const aiRes = await api.get('/ai/risk-summary');
       setAiRisk(aiRes.data.aiResponse);
     } catch (error) {
-      console.error("Error cargando dashboard:", error);
+      console.error('Error cargando IA:', error);
+      setAiRisk(null);
     }
-  };
-
+  } catch (error) {
+    console.error('Error cargando dashboard:', error);
+  }
+};
   const latestSensor = sensors[0];
 
   return (

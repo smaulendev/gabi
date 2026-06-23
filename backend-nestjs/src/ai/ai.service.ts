@@ -14,7 +14,7 @@ export class AiService {
     };
 
     const response = await firstValueFrom(
-      this.httpService.post('http://localhost:8001/risk', payload),
+      this.httpService.post('http://localhost:8000/risk', payload),
     );
 
     return {
@@ -22,5 +22,23 @@ export class AiService {
       dataSent: payload,
       aiResponse: response.data,
     };
+  }
+
+  async analyzeSensorRisk(
+    expirationDays: number,
+    temperature: number,
+    humidity: number,
+  ) {
+    const payload = {
+      expirationDays,
+      temperature,
+      humidity,
+    };
+
+    const response = await firstValueFrom(
+      this.httpService.post('http://localhost:8001/risk', payload),
+    );
+
+    return response.data;
   }
 }

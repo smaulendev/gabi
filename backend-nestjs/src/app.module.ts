@@ -9,6 +9,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { SensorReadingsModule } from './sensor-readings/sensor-readings.module';
 import { AiModule } from './ai/ai.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AiModule } from './ai/ai.module';
     AlertsModule,
     SensorReadingsModule,
     AiModule,
+    AuditModule,
   ],
 })
 export class AppModule {}

@@ -7,6 +7,7 @@ import { InventoryMovement } from './entities/inventory.entity';
 import { Lot } from '../lots/entities/lot.entity';
 import { AlertsService } from '../alerts/alerts.service';
 import { Product } from '../products/entities/product.entity';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class InventoryService {
@@ -21,6 +22,8 @@ export class InventoryService {
     private readonly productsRepository: Repository<Product>,
 
     private readonly alertsService: AlertsService,
+
+    private readonly auditService: AuditService,
   ) {}
 
   async dispatch(dispatchDto: DispatchInventoryDto) {
@@ -73,6 +76,11 @@ export class InventoryService {
 
       movements.push(await this.movementsRepository.save(movement));
 
+      await this.auditService.createLog(
+        'DISPATCH',
+        'LOT',
+        `Despacho FEFO desde lote ${lot.batchNumber} por ${quantityToDispatch} unidades`,
+      );
       if (lot.currentQuantity === 0) {
         await this.alertsService.create({
           type: 'LOTE_AGOTADO',
@@ -80,6 +88,12 @@ export class InventoryService {
           message: `El lote ${lot.batchNumber} quedó sin stock después del despacho FEFO`,
         });
       }
+
+      await this.auditService.createLog(
+        'LOT_EMPTY',
+        'LOT',
+        `Lote ${lot.batchNumber} agotado después de despacho FEFO`,
+      );
     }
 
     const product = await this.productsRepository.findOne({
@@ -110,6 +124,12 @@ export class InventoryService {
           alert.message.includes(product.name),
       );
 
+      await this.auditService.createLog(
+        'STOCK_BREAK_RISK',
+        'PRODUCT',
+        `Producto ${product.name} con stock ${totalStock} bajo mínimo ${product.minStock}`,
+      );
+
       if (!alreadyExists) {
         await this.alertsService.create({
           type: 'QUIEBRE_STOCK',
@@ -119,12 +139,53 @@ export class InventoryService {
       }
     }
 
+    await this.checkExpirationAlerts(dispatchDto.productId);
+
     return {
       message: 'Despacho realizado correctamente aplicando FEFO',
       requestedQuantity: dispatchDto.quantity,
       remainingStock: totalStock,
       movements,
     };
+  }
+
+  private async checkExpirationAlerts(productId: number) {
+    const lots = await this.lotsRepository.find({
+      where: {
+        product: {
+          id: productId,
+        },
+      },
+    });
+
+    const today = new Date();
+
+    for (const lot of lots) {
+      if (lot.currentQuantity <= 0) continue;
+
+      const expirationDate = new Date(lot.expirationDate);
+
+      const diffTime = expirationDate.getTime() - today.getTime();
+      const daysToExpire = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (daysToExpire <= 30 && daysToExpire >= 0) {
+        const activeAlerts = await this.alertsService.findActive();
+
+        const alreadyExists = activeAlerts.some(
+          (alert) =>
+            alert.type === 'LOTE_PROXIMO_VENCER' &&
+            alert.message.includes(lot.batchNumber),
+        );
+
+        if (!alreadyExists) {
+          await this.alertsService.create({
+            type: 'LOTE_PROXIMO_VENCER',
+            severity: daysToExpire <= 7 ? 'HIGH' : 'MEDIUM',
+            message: `El lote ${lot.batchNumber} del producto ${lot.product.name} vence en ${daysToExpire} días.`,
+          });
+        }
+      }
+    }
   }
 
   findAll() {
