@@ -9,13 +9,21 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+
+    private readonly auditService: AuditService,
   ) {}
+
+  private removePassword(user: User) {
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
 
   async create(userData: Partial<User>) {
     const user = this.usersRepository.create({
@@ -27,9 +35,7 @@ export class UsersService {
   }
 
   async createUser(userData: Partial<User>) {
-    const existingUser = await this.findByEmail(
-      userData.email!,
-    );
+    const existingUser = await this.findByEmail(userData.email!);
 
     if (existingUser) {
       throw new BadRequestException(
@@ -37,11 +43,7 @@ export class UsersService {
       );
     }
 
-    const validRoles = [
-      'ADMIN',
-      'OPERADOR',
-      'AUDITOR',
-    ];
+    const validRoles = ['ADMIN', 'OPERADOR', 'AUDITOR'];
 
     const role = validRoles.includes(
       String(userData.role).toUpperCase(),
@@ -49,25 +51,27 @@ export class UsersService {
       ? String(userData.role).toUpperCase()
       : 'OPERADOR';
 
-    const hashedPassword = await bcrypt.hash(
-      userData.password!,
-      10,
-    );
+    const hashedPassword = await bcrypt.hash(userData.password!, 10);
 
     const user = this.usersRepository.create({
       name: userData.name,
       email: userData.email,
       password: hashedPassword,
       role,
+      isActive: true,
     });
 
-    const savedUser =
-      await this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
 
-    const { password, ...userWithoutPassword } =
-      savedUser;
+    await this.auditService.createLog(
+      'USER_CREATE',
+      'USER',
+      `Usuario ${savedUser.email} creado con rol ${savedUser.role}`,
+      savedUser.email,
+      savedUser.role,
+    );
 
-    return userWithoutPassword;
+    return this.removePassword(savedUser);
   }
 
   async findByEmail(email: string) {
@@ -83,57 +87,66 @@ export class UsersService {
       },
     });
 
-    return users.map((user) => {
-      const { password, ...userWithoutPassword } =
-        user;
-
-      return userWithoutPassword;
-    });
+    return users.map((user) => this.removePassword(user));
   }
 
   async update(id: number, userData: Partial<User>) {
-  const user = await this.usersRepository.findOne({
-    where: { id },
-  });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
 
-  if (!user) {
-    throw new BadRequestException('Usuario no encontrado');
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    if (userData.role) {
+      userData.role = String(userData.role).toUpperCase();
+    }
+
+    await this.usersRepository.update(id, userData);
+
+    const updatedUser = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!updatedUser) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    await this.auditService.createLog(
+      'USER_UPDATE',
+      'USER',
+      `Usuario ${updatedUser.email} actualizado. Rol actual: ${updatedUser.role}`,
+      updatedUser.email,
+      updatedUser.role,
+    );
+
+    return this.removePassword(updatedUser);
   }
 
-  if (userData.role) {
-    userData.role = String(userData.role).toUpperCase();
+  async remove(id: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    user.isActive = false;
+
+    const disabledUser = await this.usersRepository.save(user);
+
+    await this.auditService.createLog(
+      'USER_DISABLE',
+      'USER',
+      `Usuario ${disabledUser.email} desactivado`,
+      disabledUser.email,
+      disabledUser.role,
+    );
+
+    return {
+      message: 'Usuario desactivado correctamente',
+    };
   }
-
-  await this.usersRepository.update(id, userData);
-
-  const updatedUser = await this.usersRepository.findOne({
-    where: { id },
-  });
-
-  if (!updatedUser) {
-    throw new BadRequestException('Usuario no encontrado');
-  }
-
-  const { password, ...userWithoutPassword } = updatedUser;
-
-  return userWithoutPassword;
-}
-
-async remove(id: number) {
-  const user = await this.usersRepository.findOne({
-    where: { id },
-  });
-
-  if (!user) {
-    throw new BadRequestException('Usuario no encontrado');
-  }
-
-  user.isActive = false;
-
-  await this.usersRepository.save(user);
-
-  return {
-    message: 'Usuario desactivado correctamente',
-  };
-}
 }

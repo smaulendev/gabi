@@ -19,6 +19,12 @@ export class AuditLog {
   @Column({ type: 'text' })
   details: string;
 
+  @Column({ nullable: true })
+  username: string;
+
+  @Column({ nullable: true })
+  userRole: string;
+
   @Column()
   hash: string;
 

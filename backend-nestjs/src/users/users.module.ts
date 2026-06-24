@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { User } from './entities/user.entity';
         expiresIn: '1d',
       },
     }),
+    AuditModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
