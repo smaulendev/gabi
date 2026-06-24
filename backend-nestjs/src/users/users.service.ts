@@ -90,4 +90,50 @@ export class UsersService {
       return userWithoutPassword;
     });
   }
+
+  async update(id: number, userData: Partial<User>) {
+  const user = await this.usersRepository.findOne({
+    where: { id },
+  });
+
+  if (!user) {
+    throw new BadRequestException('Usuario no encontrado');
+  }
+
+  if (userData.role) {
+    userData.role = String(userData.role).toUpperCase();
+  }
+
+  await this.usersRepository.update(id, userData);
+
+  const updatedUser = await this.usersRepository.findOne({
+    where: { id },
+  });
+
+  if (!updatedUser) {
+    throw new BadRequestException('Usuario no encontrado');
+  }
+
+  const { password, ...userWithoutPassword } = updatedUser;
+
+  return userWithoutPassword;
+}
+
+async remove(id: number) {
+  const user = await this.usersRepository.findOne({
+    where: { id },
+  });
+
+  if (!user) {
+    throw new BadRequestException('Usuario no encontrado');
+  }
+
+  user.isActive = false;
+
+  await this.usersRepository.save(user);
+
+  return {
+    message: 'Usuario desactivado correctamente',
+  };
+}
 }

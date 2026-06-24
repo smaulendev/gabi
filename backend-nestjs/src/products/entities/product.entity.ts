@@ -34,6 +34,9 @@ export class Product {
   @Column({ default: 10 })
   minStock: number;
 
+  @Column({ default: true })
+isActive: boolean;
+
   @Column({ default: false })
   requiresColdChain: boolean;
 

@@ -22,6 +22,9 @@ export class User {
   @Column({ default: 'OPERADOR' })
   role: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 }

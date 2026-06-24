@@ -4,6 +4,9 @@ import {
   Get,
   Post,
   UseGuards,
+  Patch,
+  Delete,
+  Param,
 } from '@nestjs/common';
 
 import { UsersService } from './users.service';
@@ -31,4 +34,21 @@ export class UsersController {
   create(@Body() body: any) {
     return this.usersService.createUser(body);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
+@Patch(':id')
+update(
+  @Param('id') id: string,
+  @Body() body: any,
+) {
+  return this.usersService.update(+id, body);
+}
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
+@Delete(':id')
+remove(@Param('id') id: string) {
+  return this.usersService.remove(+id);
+}
 }
