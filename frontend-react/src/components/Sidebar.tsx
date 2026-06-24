@@ -6,6 +6,11 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = String(user?.role || '').toUpperCase();
+
+  const isAdmin = role === 'ADMIN';
+  const isOperator = role === 'OPERADOR' || role === 'OPERATOR';
+  const isAuditor = role === 'AUDITOR';
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -14,6 +19,18 @@ export default function Sidebar() {
   };
 
   const closeMenu = () => setOpen(false);
+
+  const roleLabel =
+    role === 'ADMIN'
+      ? 'Administrador'
+      : isOperator
+        ? 'Operador'
+        : role === 'AUDITOR'
+          ? 'Auditor'
+          : 'Sin rol definido';
+
+  const canManageOperations = isAdmin || isOperator;
+  const canViewAudit = isAdmin || isAuditor;
 
   return (
     <>
@@ -44,42 +61,103 @@ export default function Sidebar() {
         <div className="mt-8 rounded-lg bg-slate-800 p-3">
           <p className="text-xs text-slate-400">Usuario conectado</p>
           <p className="break-words font-semibold">
-            {user?.email || 'Administrador'}
+            {user?.email || 'Sin usuario'}
           </p>
+
+          <div className="mt-3 inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+            Rol: {roleLabel}
+          </div>
         </div>
 
         <nav className="mt-8 flex flex-col gap-3 lg:flex-1">
-          <Link onClick={closeMenu} to="/dashboard" className="rounded-lg px-3 py-2 hover:bg-slate-800">
+          <Link
+            onClick={closeMenu}
+            to="/dashboard"
+            className="rounded-lg px-3 py-2 hover:bg-slate-800"
+          >
             Dashboard
           </Link>
 
-          <Link onClick={closeMenu} to="/products" className="rounded-lg px-3 py-2 hover:bg-slate-800">
-            Productos
-          </Link>
+          {canManageOperations && (
+            <>
+              <Link
+                onClick={closeMenu}
+                to="/products"
+                className="rounded-lg px-3 py-2 hover:bg-slate-800"
+              >
+                Productos
+              </Link>
 
-          <Link onClick={closeMenu} to="/lots" className="rounded-lg px-3 py-2 hover:bg-slate-800">
-            Lotes FEFO
-          </Link>
+              <Link
+                onClick={closeMenu}
+                to="/lots"
+                className="rounded-lg px-3 py-2 hover:bg-slate-800"
+              >
+                Lotes FEFO
+              </Link>
 
-          <Link onClick={closeMenu} to="/inventory" className="rounded-lg px-3 py-2 hover:bg-slate-800">
-            Inventario
-          </Link>
+              <Link
+                onClick={closeMenu}
+                to="/inventory"
+                className="rounded-lg px-3 py-2 hover:bg-slate-800"
+              >
+                Inventario
+              </Link>
 
-          <Link onClick={closeMenu} to="/movements" className="rounded-lg px-3 py-2 hover:bg-slate-800">
+              <Link
+                onClick={closeMenu}
+                to="/sensors"
+                className="rounded-lg px-3 py-2 hover:bg-slate-800"
+              >
+                Sensores
+              </Link>
+
+              <Link
+                onClick={closeMenu}
+                to="/scanner"
+                className="rounded-lg px-3 py-2 hover:bg-slate-800"
+              >
+                Escáner QR
+              </Link>
+            </>
+          )}
+
+          <Link
+            onClick={closeMenu}
+            to="/movements"
+            className="rounded-lg px-3 py-2 hover:bg-slate-800"
+          >
             Movimientos
           </Link>
 
-          <Link onClick={closeMenu} to="/alerts" className="rounded-lg px-3 py-2 hover:bg-slate-800">
+          <Link
+            onClick={closeMenu}
+            to="/alerts"
+            className="rounded-lg px-3 py-2 hover:bg-slate-800"
+          >
             Alertas
           </Link>
 
-          <Link onClick={closeMenu} to="/sensors" className="rounded-lg px-3 py-2 hover:bg-slate-800">
-            Sensores
-          </Link>
+          {canViewAudit && (
+            <Link
+              onClick={closeMenu}
+              to="/audit"
+              className="rounded-lg px-3 py-2 hover:bg-slate-800"
+            >
+              Auditoría
+            </Link>
+          )}
 
-          <Link onClick={closeMenu} to="/scanner" className="rounded-lg px-3 py-2 hover:bg-slate-800">
-            Escáner QR
-          </Link>
+          {isAdmin && (
+            <Link
+              onClick={closeMenu}
+              to="/users"
+              className="rounded-lg px-3 py-2 hover:bg-slate-800"
+            >
+              Usuarios
+            </Link>
+          )}
+          
         </nav>
 
         <button

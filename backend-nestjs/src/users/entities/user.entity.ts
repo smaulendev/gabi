@@ -19,7 +19,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 'operator' })
+  @Column({ default: 'OPERADOR' })
   role: string;
 
   @CreateDateColumn()

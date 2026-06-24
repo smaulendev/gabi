@@ -9,6 +9,8 @@ import InventoryPage from "./pages/InventoryPage";
 import LoginPage from "./pages/LoginPage";
 import InventoryMovementsPage from "./pages/InventoryMovementsPage";
 import ScannerPage from "./pages/ScannerPage";
+import AuditPage from "./pages/AuditPage";
+import UsersPage from "./pages/UsersPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -90,6 +92,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/audit" element={<AuditPage />} />
+          <Route path="/users" element={<UsersPage />} />
       </Routes>
     </BrowserRouter>
   );
