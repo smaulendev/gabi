@@ -5,11 +5,17 @@ import { toast } from "react-toastify";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
+    role: "OPERADOR",
+  });
+
+  const [editForm, setEditForm] = useState({
+    name: "",
     role: "OPERADOR",
   });
 
@@ -43,6 +49,49 @@ export default function UsersPage() {
     }
   };
 
+  const startEdit = (user: any) => {
+    setEditingUserId(user.id);
+    setEditForm({
+      name: user.name,
+      role: user.role,
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingUserId(null);
+    setEditForm({
+      name: "",
+      role: "OPERADOR",
+    });
+  };
+
+  const saveEdit = async (id: number) => {
+    try {
+      await api.patch(`/users/${id}`, editForm);
+      toast.success("Usuario actualizado correctamente");
+      setEditingUserId(null);
+      loadUsers();
+    } catch {
+      toast.error("Error al actualizar usuario");
+    }
+  };
+
+  const disableUser = async (id: number) => {
+    const confirmDisable = window.confirm(
+      "¿Seguro que deseas desactivar este usuario?"
+    );
+
+    if (!confirmDisable) return;
+
+    try {
+      await api.delete(`/users/${id}`);
+      toast.success("Usuario desactivado correctamente");
+      loadUsers();
+    } catch {
+      toast.error("Error al desactivar usuario");
+    }
+  };
+
   return (
     <Layout>
       <h1 className="text-3xl font-bold text-slate-900">Usuarios</h1>
@@ -60,9 +109,7 @@ export default function UsersPage() {
               className="w-full rounded-lg border border-slate-300 px-4 py-2"
               placeholder="Nombre"
               value={form.name}
-              onChange={(e) =>
-                setForm({ ...form, name: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
             />
 
@@ -71,9 +118,7 @@ export default function UsersPage() {
               className="w-full rounded-lg border border-slate-300 px-4 py-2"
               placeholder="Correo"
               value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
             />
 
@@ -82,18 +127,14 @@ export default function UsersPage() {
               className="w-full rounded-lg border border-slate-300 px-4 py-2"
               placeholder="Contraseña"
               value={form.password}
-              onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
             />
 
             <select
               className="w-full rounded-lg border border-slate-300 px-4 py-2"
               value={form.role}
-              onChange={(e) =>
-                setForm({ ...form, role: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
             >
               <option value="ADMIN">Administrador</option>
               <option value="OPERADOR">Operador</option>
@@ -121,30 +162,121 @@ export default function UsersPage() {
                   <th className="px-4 py-3">Nombre</th>
                   <th className="px-4 py-3">Correo</th>
                   <th className="px-4 py-3">Rol</th>
+                  <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3">Creado</th>
+                  <th className="px-4 py-3">Acciones</th>
                 </tr>
               </thead>
 
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b">
-                    <td className="px-4 py-3 font-medium">{user.name}</td>
-                    <td className="px-4 py-3">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {new Date(user.createdAt).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {users.map((user) => {
+                  const isEditing = editingUserId === user.id;
+
+                  return (
+                    <tr key={user.id} className="border-b">
+                      <td className="px-4 py-3 font-medium">
+                        {isEditing ? (
+                          <input
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                            value={editForm.name}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          user.name
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3">{user.email}</td>
+
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <select
+                            className="rounded-lg border border-slate-300 px-3 py-2"
+                            value={editForm.role}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                role: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="ADMIN">Administrador</option>
+                            <option value="OPERADOR">Operador</option>
+                            <option value="AUDITOR">Auditor</option>
+                          </select>
+                        ) : (
+                          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            {user.role}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            user.isActive
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {user.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {new Date(user.createdAt).toLocaleString()}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => saveEdit(user.id)}
+                              className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                            >
+                              Guardar
+                            </button>
+
+                            <button
+                              onClick={cancelEdit}
+                              className="rounded-lg bg-slate-600 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-700"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => startEdit(user)}
+                              className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                            >
+                              Editar
+                            </button>
+
+                            {user.isActive && (
+                              <button
+                                onClick={() => disableUser(user.id)}
+                                className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700"
+                              >
+                                Desactivar
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {users.length === 0 && (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={6}
                       className="px-4 py-6 text-center text-slate-500"
                     >
                       No existen usuarios registrados.
