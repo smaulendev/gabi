@@ -25,6 +25,9 @@ export class Lot {
   @Column()
   currentQuantity: number;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @ManyToOne(
     () => Product,
     (product) => product.lots,

@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 export default function LotsPage() {
   const [lots, setLots] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [editingLot, setEditingLot] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     batchNumber: '',
@@ -13,6 +14,11 @@ export default function LotsPage() {
     quantity: 0,
     currentQuantity: 0,
     productId: '',
+  });
+
+  const [editForm, setEditForm] = useState({
+    quantity: 0,
+    currentQuantity: 0,
   });
 
   useEffect(() => {
@@ -29,33 +35,78 @@ export default function LotsPage() {
     setProducts(productsRes.data);
   };
 
-const createLot = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const createLot = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  try {
-    await api.post('/lots', {
-      batchNumber: form.batchNumber,
-      expirationDate: form.expirationDate,
-      quantity: Number(form.quantity),
-      currentQuantity: Number(form.currentQuantity),
-      productId: Number(form.productId),
+    try {
+      await api.post('/lots', {
+        batchNumber: form.batchNumber,
+        expirationDate: form.expirationDate,
+        quantity: Number(form.quantity),
+        currentQuantity: Number(form.currentQuantity),
+        productId: Number(form.productId),
+      });
+
+      toast.success('Lote creado correctamente');
+
+      setForm({
+        batchNumber: '',
+        expirationDate: '',
+        quantity: 0,
+        currentQuantity: 0,
+        productId: '',
+      });
+
+      loadData();
+    } catch {
+      toast.error('Error al crear lote. Verifica los datos ingresados.');
+    }
+  };
+
+  const startEdit = (lot: any) => {
+    setEditingLot(lot.id);
+
+    setEditForm({
+      quantity: lot.quantity,
+      currentQuantity: lot.currentQuantity,
     });
+  };
 
-    toast.success('Lote creado correctamente');
+  const cancelEdit = () => {
+    setEditingLot(null);
+  };
 
-    setForm({
-      batchNumber: '',
-      expirationDate: '',
-      quantity: 0,
-      currentQuantity: 0,
-      productId: '',
-    });
+  const saveEdit = async (id: number) => {
+    try {
+      await api.patch(`/lots/${id}`, editForm);
 
-    loadData();
-  } catch {
-    toast.error('Error al crear lote. Verifica los datos ingresados.');
-  }
-};
+      toast.success('Lote actualizado correctamente');
+
+      setEditingLot(null);
+
+      loadData();
+    } catch {
+      toast.error('No fue posible actualizar el lote');
+    }
+  };
+
+  const deactivateLot = async (id: number) => {
+    const confirmDelete = window.confirm(
+      '¿Deseas desactivar este lote?'
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/lots/${id}`);
+
+      toast.success('Lote desactivado correctamente');
+
+      loadData();
+    } catch {
+      toast.error('No fue posible desactivar el lote');
+    }
+  };
 
   return (
     <Layout>
@@ -149,6 +200,7 @@ const createLot = async (e: React.FormEvent) => {
                   <th className="px-4 py-3">Stock inicial</th>
                   <th className="px-4 py-3">Stock actual</th>
                   <th className="px-4 py-3">Estado</th>
+                  <th className="px-4 py-3">Acciones</th>
                 </tr>
               </thead>
 
@@ -168,11 +220,39 @@ const createLot = async (e: React.FormEvent) => {
                     </td>
 
                     <td className="px-4 py-3">
-                      {lot.quantity}
+                      {editingLot === lot.id ? (
+                        <input
+                          type="number"
+                          value={editForm.quantity}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              quantity: Number(e.target.value),
+                            })
+                          }
+                          className="w-24 rounded border px-2 py-1"
+                        />
+                      ) : (
+                        lot.quantity
+                      )}
                     </td>
 
                     <td className="px-4 py-3">
-                      {lot.currentQuantity}
+                      {editingLot === lot.id ? (
+                        <input
+                          type="number"
+                          value={editForm.currentQuantity}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              currentQuantity: Number(e.target.value),
+                            })
+                          }
+                          className="w-24 rounded border px-2 py-1"
+                        />
+                      ) : (
+                        lot.currentQuantity
+                      )}
                     </td>
 
                     <td className="px-4 py-3">
@@ -188,13 +268,49 @@ const createLot = async (e: React.FormEvent) => {
                           : 'Disponible'}
                       </span>
                     </td>
+
+                    <td className="px-4 py-3">
+                      {editingLot === lot.id ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => saveEdit(lot.id)}
+                            className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+                          >
+                            Guardar
+                          </button>
+
+                          <button
+                            onClick={cancelEdit}
+                            className="rounded-lg bg-slate-600 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-700"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEdit(lot)}
+                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                          >
+                            Editar
+                          </button>
+
+                          <button
+                            onClick={() => deactivateLot(lot.id)}
+                            className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700"
+                          >
+                            Desactivar
+                          </button>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
 
                 {lots.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-6 text-center text-slate-500"
                     >
                       No existen lotes registrados.

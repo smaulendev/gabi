@@ -10,6 +10,7 @@ import { CreateLotDto } from './dto/create-lot.dto';
 import { Lot } from './entities/lot.entity';
 import { Product } from '../products/entities/product.entity';
 import { AlertsService } from '../alerts/alerts.service';
+import { UpdateLotDto } from './dto/update-lot.dto';
 
 @Injectable()
 export class LotsService {
@@ -106,14 +107,54 @@ export class LotsService {
     return savedLot;
   }
 
-  findAll() {
-    return this.lotsRepository.find({
-      order: {
-        expirationDate: 'ASC',
-      },
-    });
+  async update(
+  id: number,
+  updateLotDto: UpdateLotDto,
+) {
+  const lot = await this.findOne(id);
+
+  if (!lot) {
+    throw new NotFoundException(
+      'Lote no encontrado',
+    );
   }
 
+  await this.lotsRepository.update(
+    id,
+    updateLotDto,
+  );
+
+  return this.findOne(id);
+}
+
+async remove(id: number) {
+  const lot = await this.findOne(id);
+
+  if (!lot) {
+    throw new NotFoundException(
+      'Lote no encontrado',
+    );
+  }
+
+  lot.isActive = false;
+
+  await this.lotsRepository.save(lot);
+
+  return {
+    message: 'Lote desactivado correctamente',
+  };
+}
+
+findAll() {
+  return this.lotsRepository.find({
+    where: {
+      isActive: true,
+    },
+    order: {
+      expirationDate: 'ASC',
+    },
+  });
+}
   findOne(id: number) {
     return this.lotsRepository.findOne({
       where: { id },

@@ -2,6 +2,10 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 import { LotsService } from './lots.service';
 import { CreateLotDto } from './dto/create-lot.dto';
+import { Patch } from '@nestjs/common';
+import { Delete } from '@nestjs/common';
+
+import { UpdateLotDto } from './dto/update-lot.dto';
 
 @Controller('lots')
 export class LotsController {
@@ -20,6 +24,16 @@ export class LotsController {
   @Get('product/:productId/fefo')
   findByProductFefo(@Param('productId') productId: string) {
     return this.lotsService.findByProductFefo(+productId);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateLotDto: UpdateLotDto) {
+    return this.lotsService.update(+id, updateLotDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.lotsService.remove(+id);
   }
 
   @Get(':id')

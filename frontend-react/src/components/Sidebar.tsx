@@ -147,17 +147,15 @@ export default function Sidebar() {
               Auditoría
             </Link>
           )}
-
-          {isAdmin && (
-            <Link
-              onClick={closeMenu}
-              to="/users"
-              className="rounded-lg px-3 py-2 hover:bg-slate-800"
-            >
-              Usuarios
-            </Link>
-          )}
-          
+{isAdmin && (
+  <Link
+    onClick={closeMenu}
+    to="/users"
+    className="rounded-lg px-3 py-2 hover:bg-slate-800"
+  >
+    Usuarios
+  </Link>
+)}
         </nav>
 
         <button

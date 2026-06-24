@@ -93,7 +93,7 @@ function App() {
           }
         />
         <Route path="/audit" element={<AuditPage />} />
-          <Route path="/users" element={<UsersPage />} />
+        <Route path="/users" element={<UsersPage />} />
       </Routes>
     </BrowserRouter>
   );
