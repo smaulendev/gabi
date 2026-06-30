@@ -6,7 +6,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-} from 'recharts';
+  Legend,
+} from "recharts";
 
 interface Props {
   data: any[];
@@ -17,44 +18,81 @@ export default function EnvironmentChart({ data }: Props) {
     .reverse()
     .map((item) => ({
       name: `#${item.id}`,
-      temperatura: item.temperature,
-      humedad: item.humidity,
-    }));
+      temperatura: Number(item.temperature),
+      humedad: Number(item.humidity),
+    }))
+    .filter(
+      (item) =>
+        Number.isFinite(item.temperatura) &&
+        Number.isFinite(item.humedad)
+    );
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex h-full min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 text-sm font-semibold text-slate-500">
+        No existen datos ambientales suficientes para graficar.
+      </div>
+    );
+  }
 
   return (
-    <section className="mt-8 rounded-xl bg-white p-6 shadow-md">
-      <h2 className="text-xl font-bold text-slate-900">
-        Tendencia ambiental
-      </h2>
+    <div className="h-full min-h-[260px] w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={chartData}
+          margin={{
+            top: 10,
+            right: 24,
+            left: -20,
+            bottom: 0,
+          }}
+        >
+          <CartesianGrid strokeDasharray="4 4" stroke="#E5E7EB" />
 
-      <p className="mt-1 text-sm text-slate-500">
-        Últimas lecturas de temperatura y humedad.
-      </p>
+          <XAxis
+            dataKey="name"
+            tick={{ fontSize: 12, fill: "#64748B" }}
+            axisLine={false}
+            tickLine={false}
+          />
 
-      <div className="mt-6 h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
+          <YAxis
+            tick={{ fontSize: 12, fill: "#64748B" }}
+            axisLine={false}
+            tickLine={false}
+          />
 
-            <Line
-              type="monotone"
-              dataKey="temperatura"
-              stroke="#2563eb"
-              strokeWidth={3}
-            />
+          <Tooltip
+            contentStyle={{
+              borderRadius: "16px",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 20px 40px rgba(15, 23, 42, 0.12)",
+            }}
+          />
 
-            <Line
-              type="monotone"
-              dataKey="humedad"
-              stroke="#dc2626"
-              strokeWidth={3}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </section>
+          <Legend verticalAlign="top" align="right" height={36} />
+
+          <Line
+            type="monotone"
+            dataKey="temperatura"
+            name="Temperatura (°C)"
+            stroke="#EF4444"
+            strokeWidth={3}
+            dot={{ r: 4, strokeWidth: 2 }}
+            activeDot={{ r: 6 }}
+          />
+
+          <Line
+            type="monotone"
+            dataKey="humedad"
+            name="Humedad (%)"
+            stroke="#3B82F6"
+            strokeWidth={3}
+            dot={{ r: 4, strokeWidth: 2 }}
+            activeDot={{ r: 6 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
