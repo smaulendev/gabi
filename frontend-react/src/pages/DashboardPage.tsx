@@ -8,7 +8,7 @@ import AlertsSeverityChart from "../components/AlertsSeverityChart";
 import HealthScoreGauge from "../components/HealthScoreGauge";
 import GabiIntelligenceCenter from "../components/GabiIntelligenceCenter";
 import OperationalTimeline from "../components/OperationalTimeline";
-import SystemStatusBar from "../components/SystemStatusBar";
+// import SystemStatusBar from "../components/SystemStatusBar";
 
 import {
   Activity,
@@ -457,20 +457,21 @@ export default function DashboardPage() {
           </button>
         </header>
 
-        <SystemStatusBar
+        {/* <SystemStatusBar
           lastUpdated={lastUpdated}
           apiOnline={apiOnline}
           databaseOnline={databaseOnline}
           aiOnline={aiOnline}
-        />
+        /> */}
 
         <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             title="Salud operacional"
             value={`${kpis.healthScore}%`}
             icon={<ShieldAlert size={28} />}
-            variant={kpis.operationalVariant}
-          />
+variant={
+  kpis.operationalVariant as "default" | "success" | "warning" | "danger"
+}
 
           <StatCard
             title="Cumplimiento FEFO"
