@@ -8,6 +8,7 @@ import AlertsSeverityChart from "../components/AlertsSeverityChart";
 import HealthScoreGauge from "../components/HealthScoreGauge";
 import GabiIntelligenceCenter from "../components/GabiIntelligenceCenter";
 import OperationalTimeline from "../components/OperationalTimeline";
+import SystemStatusBar from "../components/SystemStatusBar";
 
 import {
   Activity,
@@ -18,6 +19,7 @@ import {
   CalendarClock,
   CheckCircle2,
   ClipboardCheck,
+  Download,
   Gauge,
   ShieldAlert,
   Thermometer,
@@ -31,6 +33,11 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [sensors, setSensors] = useState<any[]>([]);
   const [aiRisk, setAiRisk] = useState<any>(null);
+
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [apiOnline, setApiOnline] = useState(true);
+  const [databaseOnline, setDatabaseOnline] = useState(true);
+  const [aiOnline, setAiOnline] = useState(true);
 
   useEffect(() => {
     loadDashboard();
@@ -50,14 +57,22 @@ export default function DashboardPage() {
       setAlerts(alertsRes.data);
       setSensors(sensorsRes.data);
 
+      setApiOnline(true);
+      setDatabaseOnline(true);
+      setLastUpdated(new Date());
+
       try {
         const aiRes = await api.get("/ai/risk-summary");
         setAiRisk(aiRes.data.aiResponse);
+        setAiOnline(true);
       } catch {
         setAiRisk(null);
+        setAiOnline(false);
       }
     } catch (error) {
       console.error("Error cargando dashboard:", error);
+      setApiOnline(false);
+      setDatabaseOnline(false);
     }
   };
 
@@ -98,7 +113,11 @@ export default function DashboardPage() {
 
     const criticalAlerts = alerts.filter((alert) => {
       const severity = String(alert.severity || "").toUpperCase();
-      return severity === "HIGH" || severity === "CRITICAL" || severity === "ALTO";
+      return (
+        severity === "HIGH" ||
+        severity === "CRITICAL" ||
+        severity === "ALTO"
+      );
     });
 
     const mediumAlerts = alerts.filter((alert) => {
@@ -228,8 +247,8 @@ export default function DashboardPage() {
         ? "Requiere atención"
         : "Riesgo crítico";
 
-const operationalVariant: "success" | "warning" | "danger" =
-  healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "danger";
+    const operationalVariant =
+      healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "danger";
 
     const aiRecommendation =
       healthScore >= 80
@@ -361,6 +380,53 @@ const operationalVariant: "success" | "warning" | "danger" =
     return "bg-emerald-100 text-emerald-600";
   };
 
+  const exportKpisToCsv = () => {
+    const rows = [
+      ["KPI", "Valor"],
+      ["Salud operacional", `${kpis.healthScore}%`],
+      ["Estado operacional", kpis.operationalStatus],
+      ["Cumplimiento FEFO", `${kpis.fefoCompliance}%`],
+      ["Stock disponible", kpis.totalStock],
+      ["Stock inicial", kpis.initialStock],
+      ["Stock consumido", kpis.consumedStock],
+      ["Uso de stock", `${kpis.stockUsage}%`],
+      ["Lotes próximos a vencer", kpis.expiringSoonLots.length],
+      ["Lotes vencidos", kpis.expiredLots.length],
+      ["Lotes agotados", kpis.depletedLots.length],
+      ["Productos bajo stock mínimo", kpis.lowStockProducts.length],
+      ["Alertas críticas", kpis.criticalAlerts.length],
+      ["Alertas medias", kpis.mediumAlerts.length],
+      ["Alertas bajas", kpis.lowAlerts.length],
+      ["Sensores críticos", kpis.criticalSensors.length],
+      ["Temperatura promedio", `${kpis.averageTemperature.toFixed(1)}°C`],
+      ["Humedad promedio", `${kpis.averageHumidity.toFixed(1)}%`],
+      ["Productos cadena de frío", kpis.coldChainProducts.length],
+      ["Riesgo IA", aiRisk?.risk || "N/D"],
+      ["Recomendación IA", kpis.aiRecommendation],
+    ];
+
+    const csvContent = rows
+      .map((row) =>
+        row
+          .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+          .join(",")
+      )
+      .join("\n");
+
+    const blob = new Blob([`\uFEFF${csvContent}`], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `gabi-kpis-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -380,14 +446,30 @@ const operationalVariant: "success" | "warning" | "danger" =
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={exportKpisToCsv}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition hover:-translate-y-1 hover:shadow-xl"
+          >
+            <Download size={18} />
+            Exportar KPIs CSV
+          </button>
         </header>
+
+        <SystemStatusBar
+          lastUpdated={lastUpdated}
+          apiOnline={apiOnline}
+          databaseOnline={databaseOnline}
+          aiOnline={aiOnline}
+        />
 
         <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             title="Salud operacional"
             value={`${kpis.healthScore}%`}
             icon={<ShieldAlert size={28} />}
-           variant={kpis.operationalVariant as "success" | "warning" | "danger"}
+            variant={kpis.operationalVariant}
           />
 
           <StatCard
