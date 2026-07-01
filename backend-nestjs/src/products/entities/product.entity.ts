@@ -16,6 +16,9 @@ export class Product {
   @Column({ unique: true })
   sku: string;
 
+  @Column({ unique: true, nullable: true })
+  barcode: string;
+
   @Column()
   name: string;
 
@@ -24,6 +27,15 @@ export class Product {
 
   @Column({ nullable: true })
   category: string;
+
+  @Column({ nullable: true })
+  chemicalFamily: string;
+
+  @Column({ default: 10 })
+  minStock: number;
+
+  @Column({ default: true })
+isActive: boolean;
 
   @Column({ default: false })
   requiresColdChain: boolean;

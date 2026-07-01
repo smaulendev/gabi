@@ -6,6 +6,8 @@ import { firstValueFrom } from 'rxjs';
 export class AiService {
   constructor(private readonly httpService: HttpService) {}
 
+  private readonly aiUrl = process.env.AI_API_URL || 'http://localhost:8000';
+
   async analyzeRisk() {
     const payload = {
       expirationDays: 15,
@@ -14,7 +16,7 @@ export class AiService {
     };
 
     const response = await firstValueFrom(
-      this.httpService.post('http://localhost:8001/risk', payload),
+      this.httpService.post(`${this.aiUrl}/risk`, payload),
     );
 
     return {
@@ -25,20 +27,20 @@ export class AiService {
   }
 
   async analyzeSensorRisk(
-  expirationDays: number,
-  temperature: number,
-  humidity: number,
-) {
-  const payload = {
-    expirationDays,
-    temperature,
-    humidity,
-  };
+    expirationDays: number,
+    temperature: number,
+    humidity: number,
+  ) {
+    const payload = {
+      expirationDays,
+      temperature,
+      humidity,
+    };
 
-  const response = await firstValueFrom(
-    this.httpService.post('http://localhost:8001/risk', payload),
-  );
+    const response = await firstValueFrom(
+      this.httpService.post(`${this.aiUrl}/risk`, payload),
+    );
 
-  return response.data;
-}
+    return response.data;
+  }
 }

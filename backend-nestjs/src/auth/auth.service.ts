@@ -29,6 +29,7 @@ export class AuthService {
       name: registerDto.name,
       email: registerDto.email,
       password: hashedPassword,
+      role: registerDto.role || 'OPERADOR',
     });
 
     const { password, ...userWithoutPassword } = user;

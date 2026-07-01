@@ -9,6 +9,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { SensorReadingsModule } from './sensor-readings/sensor-readings.module';
 import { AiModule } from './ai/ai.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -18,11 +19,16 @@ import { AiModule } from './ai/ai.module';
 
     TypeOrmModule.forRoot({
       type: 'postgres',
+
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+
+      ssl: {
+        rejectUnauthorized: false,
+      },
 
       autoLoadEntities: true,
 
@@ -37,6 +43,7 @@ import { AiModule } from './ai/ai.module';
     AlertsModule,
     SensorReadingsModule,
     AiModule,
+    AuditModule,
   ],
 })
 export class AppModule {}
