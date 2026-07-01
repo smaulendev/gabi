@@ -8,7 +8,6 @@ import AlertsSeverityChart from "../components/AlertsSeverityChart";
 import HealthScoreGauge from "../components/HealthScoreGauge";
 import GabiIntelligenceCenter from "../components/GabiIntelligenceCenter";
 import OperationalTimeline from "../components/OperationalTimeline";
-// import SystemStatusBar from "../components/SystemStatusBar";
 
 import {
   Activity,
@@ -34,11 +33,6 @@ export default function DashboardPage() {
   const [sensors, setSensors] = useState<any[]>([]);
   const [aiRisk, setAiRisk] = useState<any>(null);
 
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [apiOnline, setApiOnline] = useState(true);
-  const [databaseOnline, setDatabaseOnline] = useState(true);
-  const [aiOnline, setAiOnline] = useState(true);
-
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -57,22 +51,14 @@ export default function DashboardPage() {
       setAlerts(alertsRes.data);
       setSensors(sensorsRes.data);
 
-      setApiOnline(true);
-      setDatabaseOnline(true);
-      setLastUpdated(new Date());
-
       try {
         const aiRes = await api.get("/ai/risk-summary");
         setAiRisk(aiRes.data.aiResponse);
-        setAiOnline(true);
       } catch {
         setAiRisk(null);
-        setAiOnline(false);
       }
     } catch (error) {
       console.error("Error cargando dashboard:", error);
-      setApiOnline(false);
-      setDatabaseOnline(false);
     }
   };
 
@@ -247,7 +233,7 @@ export default function DashboardPage() {
         ? "Requiere atención"
         : "Riesgo crítico";
 
-    const operationalVariant =
+    const operationalVariant: "default" | "success" | "warning" | "danger" =
       healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "danger";
 
     const aiRecommendation =
@@ -457,21 +443,13 @@ export default function DashboardPage() {
           </button>
         </header>
 
-        {/* <SystemStatusBar
-          lastUpdated={lastUpdated}
-          apiOnline={apiOnline}
-          databaseOnline={databaseOnline}
-          aiOnline={aiOnline}
-        /> */}
-
         <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             title="Salud operacional"
             value={`${kpis.healthScore}%`}
             icon={<ShieldAlert size={28} />}
-variant={
-  kpis.operationalVariant as "default" | "success" | "warning" | "danger"
-}
+            variant={kpis.operationalVariant}
+          />
 
           <StatCard
             title="Cumplimiento FEFO"
