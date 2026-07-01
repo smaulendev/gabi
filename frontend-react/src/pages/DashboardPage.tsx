@@ -228,8 +228,8 @@ export default function DashboardPage() {
         ? "Requiere atención"
         : "Riesgo crítico";
 
-    const operationalVariant =
-      healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "danger";
+const operationalVariant: "success" | "warning" | "danger" =
+  healthScore >= 80 ? "success" : healthScore >= 60 ? "warning" : "danger";
 
     const aiRecommendation =
       healthScore >= 80
@@ -387,7 +387,7 @@ export default function DashboardPage() {
             title="Salud operacional"
             value={`${kpis.healthScore}%`}
             icon={<ShieldAlert size={28} />}
-            variant={kpis.operationalVariant}
+           variant={kpis.operationalVariant as "success" | "warning" | "danger"}
           />
 
           <StatCard
